@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sharp-equipment-en",
+    "question": "What equipment did Sharp auto label project use?",
+    "filename": "SHARP AUTO LABEL INSPECTION-REVISE1.pdf",
+    "expected_pages": [9]
+  },
+  {
+    "id": "sharp-equipment-th",
+    "question": "โปรเจ็ค sharp auto label ใช้อุปกรณ์อะไรบ้าง",
+    "filename": "SHARP AUTO LABEL INSPECTION-REVISE1.pdf",
+    "expected_pages": [9]
+  },
+  {
+    "id": "medicine-software-en",
+    "question": "What software and technology does Test Report ยา use?",
+    "filename": "Test Report ยา.pdf",
+    "expected_pages": [5, 6]
+  },
+  {
+    "id": "medicine-software-th",
+    "question": "test ยา ใช้ software หรือ technology อะไรบ้าง",
+    "filename": "Test Report ยา.pdf",
+    "expected_pages": [5, 6]
+  }
+]
