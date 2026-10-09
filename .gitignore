@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+chroma_db/
+chroma_db_f2llm_test/
+output/embedding-comparison/
+output/retrieval/
+node_modules/
+frontend/dist/
+.env
+.env.local
+uploads/
+.tools/
+output/extraction/
+data/
