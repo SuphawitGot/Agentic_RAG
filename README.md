@@ -1,13 +1,77 @@
-# RagSale
+# Agentic RAG
 
-A local RAG web app for English and Thai PDF reports. Upload PDFs, then ask
-questions in the chat: the backend retrieves matching excerpts and a local Qwen
-model answers with numbered citations. Everything runs on your machine: FastAPI
-backend, React frontend, Chroma vector store, CPU embeddings, and Ollama for the
-answer model and OCR.
+An AI agent that answers questions about English and Thai PDF reports by
+deciding for itself how to search them.
 
-For project history, design decisions, and notes for moving to another PC, read
-[CODEX_HANDOFF.md](CODEX_HANDOFF.md).
+This project starts from **RagSale**, a local RAG web app for sales and
+industrial-inspection PDFs. RagSale already does the hard groundwork: PDF and
+OCR extraction, chunking, embeddings, a Chroma vector store, hybrid retrieval,
+and cited answers. What it does not do is *act like an agent*: every question
+goes through the same fixed steps that the code decides in advance.
+
+The goal here is to turn those building blocks into tools that an LLM agent
+can choose, combine and repeat until it has enough evidence to answer.
+
+> **Status:** early. The code in this repository is still the RagSale pipeline
+> (the Python package is still named `ragsale`). The agent layer described below
+> is the plan, not implemented behavior. Everything from
+> [Current baseline](#current-baseline-inherited-from-ragsale) down documents
+> what runs today.
+
+## From pipeline to agent
+
+| | RagSale (baseline) | Agentic RAG (goal) |
+|---|---|---|
+| Who decides the steps | The code: detect project → retrieve → answer | The agent plans and picks tools for each question |
+| Searches per question | One retrieval pass | As many as needed: rephrase, narrow, broaden, retry |
+| Weak or missing evidence | Says the evidence is insufficient | Notices the gap and searches again before giving up |
+| Multi-part questions | Answered from one set of excerpts | Split into sub-questions, each answered with its own evidence |
+| Comparisons | Fixed comparison across chosen projects | Gathers evidence per project, then compares |
+| Conversation | Each question is independent | Keeps context across turns |
+| Answers | Cited excerpts | Cited excerpts, plus the steps the agent took |
+
+## Planned agent tools
+
+The first tools wrap code that already exists, so the agent starts from tested
+behavior instead of new code.
+
+| Tool | What it does | Built on |
+|---|---|---|
+| `list_projects` | List projects and their documents | `rag/projects.py` → `list_projects()` |
+| `search_documents` | Hybrid vector + keyword search, optionally limited to some documents | `rag/retrieval.py` → `retrieve()` |
+| `search_projects` | Search several projects and return evidence per project | `rag/retrieval.py` → `retrieve_projects()` |
+| `ask_user` | Ask the user which project they mean when it is ambiguous | `rag/project_chat.py` → `clarification()` |
+| `answer_with_citations` | Write the final answer from the collected excerpts | `rag/answering.py` → `generate_answer()` |
+
+Possible later tools: reading a specific page of a PDF, table lookups, and
+calculations on extracted numbers.
+
+## Roadmap
+
+1. **Agent loop** – a tool-calling loop with a step limit, using the tools above.
+2. **Chat endpoint** – serve the agent from `/api/chat` (or a new route) and keep
+   the current pipeline available for comparison.
+3. **Show the agent's steps** – display which tools were called and why in the
+   chat UI.
+4. **Conversation memory** – send previous turns to the agent.
+5. **Evaluation** – compare agent and pipeline answers on the same question set
+   (see `evaluation/`).
+6. **Clean-up** – rename the `ragsale` package and the `pyproject.toml`
+   description to match this project.
+
+Open decision: which model drives the agent. The baseline uses local Ollama
+models (`qwen3:8b`); an agent needs reliable tool calling, so a larger local
+model or a hosted API may work better. This will be decided by testing.
+
+---
+
+# Current baseline (inherited from RagSale)
+
+The sections below describe the code as it runs today: a local RAG web app.
+Upload PDFs, then ask questions in the chat; the backend retrieves matching
+excerpts and a local Qwen model answers with numbered citations. Everything
+runs on your machine: FastAPI backend, React frontend, Chroma vector store, CPU
+embeddings, and Ollama for the answer model and OCR.
 
 ## How it works
 
@@ -275,7 +339,7 @@ node --test tests/documents.test.js
 On Windows, a few backend tests that create temporary Chroma/SQLite files or
 assume `/tmp` paths currently fail because of file locking and path handling.
 
-## Limitations and next steps
+## Baseline limitations
 
 - Uploads run synchronously; a background job queue would remove long-open
   requests and timeouts.
