@@ -41,7 +41,7 @@ class ProjectRegistryTests(unittest.TestCase):
 
 class RetrievalScopeTests(unittest.TestCase):
     def test_real_chroma_filter_and_balanced_project_evidence(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
             collection = chromadb.PersistentClient(path=tmp).create_collection('project_test', embedding_function=None)
             collection.upsert(ids=['c1', 'c2', 'c3', 'p1'], documents=['car1', 'car2', 'car3', 'person1'],
                 metadatas=[{'document_id': x} for x in ['car-pdf', 'car-pdf', 'car-pdf', 'person-pdf']],

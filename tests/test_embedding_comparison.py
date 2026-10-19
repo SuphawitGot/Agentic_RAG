@@ -1,3 +1,4 @@
+from pathlib import Path
 import unittest
 import numpy as np
 from evaluation.compare_embeddings import separate_paths, check_vectors, fingerprint, metrics, evaluate_baseline
@@ -8,7 +9,7 @@ class EmbeddingComparisonTests(unittest.TestCase):
         for target in ['/tmp/live', '/tmp/live/child', '/tmp']:
             with self.assertRaises(ValueError):
                 separate_paths('/tmp/live', target)
-        self.assertEqual(str(separate_paths('/tmp/live', '/tmp/test-db')), '/tmp/test-db')
+        self.assertEqual(separate_paths('/tmp/live', '/tmp/test-db'), Path('/tmp/test-db').resolve())
 
     def test_invalid_vectors_are_rejected(self):
         for vectors in [[[0., 0.]], [[float('nan'), 0.]], [[2., 0.]], [[1., 0., 0.]]]:

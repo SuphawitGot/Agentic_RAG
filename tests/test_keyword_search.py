@@ -28,7 +28,7 @@ class KeywordSearchTests(unittest.TestCase):
         self.assertEqual(keyword_rank('unmentioned', records), [])
 
     def test_lexical_rescue_outside_dense_pool_preserves_scope(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
             c = chromadb.PersistentClient(path=tmp).create_collection('hybrid_test', embedding_function=None)
             ids = [f'noise{i}' for i in range(13)] + ['software', 'other']
             c.upsert(ids=ids, documents=['unrelated cover'] * 13 + ['Software deep learning studio', 'software software'],
@@ -41,7 +41,7 @@ class KeywordSearchTests(unittest.TestCase):
             self.assertAlmostEqual(next(m for m in matches if m['id'] == 'software')['distance'], 1.)
 
     def test_overlapping_weak_hits_do_not_displace_best_keyword_hit(self):
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
             c = chromadb.PersistentClient(path=tmp).create_collection('overlap_test', embedding_function=None)
             c.upsert(ids=[f'weak{i}' for i in range(13)] + ['software', 'technology'],
                      documents=['technology ' + 'general context ' * 100] * 13 + ['Software studio', 'Technology comparison'],

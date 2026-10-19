@@ -92,22 +92,13 @@ with `qwen3:8b` than with a larger or hosted model.
 
 ## Roadmap
 
-1. **Agent loop** – done for uploaded PDFs: the LangGraph agent above.
-2. **Chat endpoint** – done: `RAG_CHAT_MODE=langgraph`, with the pipeline kept for
-   comparison.
-3. **Web sources** – tools that search papers, news and blogs and ingest the
-   results, so the agent can add to its own knowledge base.
-4. **Show the agent's steps** – display which tools were called and why in the
-   chat UI.
-5. **Conversation memory** – send previous turns to the agent.
-6. **Evaluation** – compare agent and pipeline answers on the same question set
-   (see `evaluation/`).
-7. **Clean-up** – rename the `ragsale` package and the `pyproject.toml`
-   description to match this project.
+Done: the LangGraph agent for uploaded PDFs, and the chat endpoint
+(`RAG_CHAT_MODE=langgraph`, with the pipeline kept for comparison).
 
-Open decision: which model drives the agent. It defaults to local `qwen3:8b`
-through Ollama; a hosted model may call tools more reliably. This will be
-decided by testing.
+Next: clean up the base, ingest URLs, move to hosted services, add web and
+paper search tools, connect them to the agent, show its steps in the UI, and
+deploy. See [ROADMAP.md](ROADMAP.md) for the phases, the agent workflow and the
+open decisions.
 
 ---
 

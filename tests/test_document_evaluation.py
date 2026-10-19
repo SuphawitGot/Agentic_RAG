@@ -9,7 +9,12 @@ from evaluation.evaluate_documents import run
 from evaluation.evaluate_extraction import evaluate
 
 
+REFERENCES = Path(__file__).resolve().parents[1] / 'evaluation' / 'references' / 'three-documents'
+
+
 class DocumentBenchmarkTests(unittest.TestCase):
+    # The reference files are private and not part of this public repo.
+    @unittest.skipUnless((REFERENCES / 'manifest.json').exists(), 'private reference files not present')
     def test_missing_documents_are_reported_and_not_removed_from_denominator(self):
         with tempfile.TemporaryDirectory() as folder, contextlib.redirect_stdout(io.StringIO()):
             root = Path(folder)
