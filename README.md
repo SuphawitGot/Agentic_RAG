@@ -6,17 +6,19 @@ deciding for itself how to search them.
 This project starts from **RagSale**, a local RAG web app for sales and
 industrial-inspection PDFs. RagSale already does the hard groundwork: PDF and
 OCR extraction, chunking, embeddings, a Chroma vector store, hybrid retrieval,
-and cited answers. What it does not do is *act like an agent*: every question
-goes through the same fixed steps that the code decides in advance.
+and cited answers. In the copy here, every question goes through the same fixed
+steps that the code decides in advance.
 
 The goal here is to turn those building blocks into tools that an LLM agent
 can choose, combine and repeat until it has enough evidence to answer.
 
-> **Status:** early. The code in this repository is still the RagSale pipeline
-> (the Python package is still named `ragsale`). The agent layer described below
-> is the plan, not implemented behavior. Everything from
+> **Status:** early. The first agent is in [`src/ragsale/agent/`](src/ragsale/agent/):
+> RagSale's hand-written agent loop rebuilt with LangGraph, to learn the
+> framework. It searches the uploaded PDFs only; web search is not built yet.
+> The default chat still uses the RagSale pipeline (the Python package is still
+> named `ragsale`). Everything from
 > [Current baseline](#current-baseline-inherited-from-ragsale) down documents
-> what runs today.
+> that pipeline.
 
 ## From pipeline to agent
 
@@ -30,38 +32,82 @@ can choose, combine and repeat until it has enough evidence to answer.
 | Conversation | Each question is independent | Keeps context across turns |
 | Answers | Cited excerpts | Cited excerpts, plus the steps the agent took |
 
-## Planned agent tools
+## LangGraph agent
 
-The first tools wrap code that already exists, so the agent starts from tested
-behavior instead of new code.
+RagSale's own agent is a hand-written Python loop: ask the model for one JSON
+decision, run the tool it names, repeat. [`agent/graph.py`](src/ragsale/agent/graph.py)
+builds the same loop as a LangGraph graph, so the two can be compared side by side.
 
-| Tool | What it does | Built on |
+```text
+START -> agent --+-- search tool calls ----> tools -----------> agent
+                 +-- finishing tool call --> finish --+-------> END
+                 |                                    +-------> agent (answer failed checks)
+                 +-- plain text, no tool --> remind ----------> agent
+                 +-- budget or time used up ------------------> END
+```
+
+| Hand-written loop (RagSale) | LangGraph version |
+|---|---|
+| `for step in range(...)` loop | Graph: nodes `agent`, `tools`, `finish`, `remind`, joined by edges |
+| Local variables (`records`, `events`, `tool_count`) | `AgentState`, a typed dict every node reads and updates |
+| Model returns JSON `Decision` with `action` | Model makes native tool calls |
+| `action: tool` | Search tools: `search_all_projects`, `search_project`, `compare_projects` |
+| `action: answer` / `clarify` / `insufficient` | Finishing tools: `submit_answer`, `ask_user`, `report_insufficient` |
+| Schema `enum` limits the allowed actions | `agent` node offers only the tools allowed now (search first; finish only when the budget is used) |
+| Direct HTTP call to Ollama | `init_chat_model`, so any provider works by changing `AGENT_MODEL` |
+
+These rules stay in Python, as in RagSale: 4 searches, 7 model calls and 180
+seconds per question; repeated searches are blocked; selected projects are a
+hard scope; and `verify_claims()` drops any claim whose quote is not in the
+cited excerpt or whose numbers are not in the quote.
+
+The routing that runs before RagSale's loop (question classification,
+"which projects" discovery, comparisons and reports) is not ported; every
+question goes straight into the loop.
+
+Watch it work, step by step:
+
+```bash
+uv run python -m ragsale.agent "Which camera does Demo Line A use?"
+```
+
+```text
+agent -> search_all_projects({"query": "camera"})
+tools: search_all_projects found 2 excerpts, 3 searches left
+agent -> submit_answer({"claims": [...]})
+
+Demo Line A: Uses a BASLER acA1300 camera. [1]
+```
+
+Use it in the web chat by starting the backend with `RAG_CHAT_MODE=langgraph`.
+
+| Variable | Default | Purpose |
 |---|---|---|
-| `list_projects` | List projects and their documents | `rag/projects.py` → `list_projects()` |
-| `search_documents` | Hybrid vector + keyword search, optionally limited to some documents | `rag/retrieval.py` → `retrieve()` |
-| `search_projects` | Search several projects and return evidence per project | `rag/retrieval.py` → `retrieve_projects()` |
-| `ask_user` | Ask the user which project they mean when it is ambiguous | `rag/project_chat.py` → `clarification()` |
-| `answer_with_citations` | Write the final answer from the collected excerpts | `rag/answering.py` → `generate_answer()` |
+| `RAG_CHAT_MODE` | (pipeline) | `langgraph` makes `/api/chat` use the agent |
+| `AGENT_MODEL` | `ollama:` + `QWEN_MODEL` | Model as `provider:model`, e.g. `ollama:qwen3:8b`. A cloud provider needs its LangChain package (`langchain-anthropic`, `langchain-openai`) and API key |
 
-Possible later tools: reading a specific page of a PDF, table lookups, and
-calculations on extracted numbers.
+The model must support tool calling. Small local models call tools less
+reliably than RagSale's JSON-decision approach, so expect more `remind` steps
+with `qwen3:8b` than with a larger or hosted model.
 
 ## Roadmap
 
-1. **Agent loop** – a tool-calling loop with a step limit, using the tools above.
-2. **Chat endpoint** – serve the agent from `/api/chat` (or a new route) and keep
-   the current pipeline available for comparison.
-3. **Show the agent's steps** – display which tools were called and why in the
+1. **Agent loop** – done for uploaded PDFs: the LangGraph agent above.
+2. **Chat endpoint** – done: `RAG_CHAT_MODE=langgraph`, with the pipeline kept for
+   comparison.
+3. **Web sources** – tools that search papers, news and blogs and ingest the
+   results, so the agent can add to its own knowledge base.
+4. **Show the agent's steps** – display which tools were called and why in the
    chat UI.
-4. **Conversation memory** – send previous turns to the agent.
-5. **Evaluation** – compare agent and pipeline answers on the same question set
+5. **Conversation memory** – send previous turns to the agent.
+6. **Evaluation** – compare agent and pipeline answers on the same question set
    (see `evaluation/`).
-6. **Clean-up** – rename the `ragsale` package and the `pyproject.toml`
+7. **Clean-up** – rename the `ragsale` package and the `pyproject.toml`
    description to match this project.
 
-Open decision: which model drives the agent. The baseline uses local Ollama
-models (`qwen3:8b`); an agent needs reliable tool calling, so a larger local
-model or a hosted API may work better. This will be decided by testing.
+Open decision: which model drives the agent. It defaults to local `qwen3:8b`
+through Ollama; a hosted model may call tools more reliably. This will be
+decided by testing.
 
 ---
 
@@ -263,7 +309,7 @@ Each uploaded PDF is one project by default, named after its file.
 - **Named projects** – a full project name or filename in the question (for
   example "Summarize Scope of Work of copper pipe test") selects that project.
   Matching ignores case, spacing, underscores and hyphens. Distinctive shortened
-  names also work ("washer inspection" matches "IAI_Washer Inspection") when
+  names also work ("washer inspection" matches "IAI_Demo Line A") when
   they contain at least two adjacent title words, including a distinctive word.
   Document markers may be omitted ("test ยา" matches "Test Report ยา").
   Full names take priority over shortened ones.

@@ -1,6 +1,7 @@
 """Question -> vector retrieval -> local Qwen -> cited answer."""
 
 import logging
+import os
 from fastapi import APIRouter, HTTPException
 from typing import Literal
 from pydantic import BaseModel, Field, model_validator
@@ -8,6 +9,7 @@ from starlette.concurrency import run_in_threadpool
 from .search import SearchRequest, SearchMatch
 from ..rag.answering import GenerationError
 from ..rag.project_chat import project_chat
+from ..agent.graph import graph_chat
 from .projects import ProjectSummary
 
 router = APIRouter(tags=['chat'])
@@ -42,7 +44,9 @@ class ChatRequest(SearchRequest):
 @router.post('/chat', response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
-        return await run_in_threadpool(project_chat, request.question, request.top_k,
+        # RAG_CHAT_MODE=langgraph answers with the LangGraph agent instead of the pipeline.
+        answer = graph_chat if os.getenv('RAG_CHAT_MODE') == 'langgraph' else project_chat
+        return await run_in_threadpool(answer, request.question, request.top_k,
                                        request.selected_project_ids, request.search_all)
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
