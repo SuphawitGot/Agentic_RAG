@@ -95,9 +95,9 @@ with `qwen3:8b` than with a larger or hosted model.
 Done: the LangGraph agent for uploaded PDFs, and the chat endpoint
 (`RAG_CHAT_MODE=langgraph`, with the pipeline kept for comparison).
 
-Next: clean up the base, ingest URLs, move to hosted services, add web and
-paper search tools, connect them to the agent, show its steps in the UI, and
-deploy. See [ROADMAP.md](ROADMAP.md) for the phases, the agent workflow and the
+Next: clean up the base, choose the embedding model, ingest URLs, add web and
+paper search tools, connect them to the agent, show its steps in the UI, move
+to hosted services, and deploy. See [ROADMAP.md](ROADMAP.md) for the phases, the agent workflow and the
 open decisions.
 
 ---
@@ -208,7 +208,7 @@ src/ragsale/
     scope.py                  # POST /api/chat/scope (older filename-only preview)
     projects.py               # Project listing and assignment
   rag/
-    loader.py                 # PDF pages / dataset rows -> Documents
+    loader.py                 # PDF pages -> Documents
     layout.py                 # Layout-aware native text and tables
     ocr.py                    # Typhoon OCR via Ollama
     pdf_ingestion.py          # Upload pipeline: extract -> chunk -> embed -> store
@@ -222,11 +222,8 @@ src/ragsale/
     project_names.py          # Project name matching in questions
     projects.py               # Project registry (data/projects.sqlite3)
     clarification.py          # Filename-based document-scope rules
-  ingest.py                   # Demo dataset ingestion workflow
 evaluation/                   # Extraction, chunking and embedding evaluations
 tests/                        # Backend unit tests
-main.py                       # Runs ingest.py
-DB_Data_viewer.py             # Inspect the Chroma database
 ```
 
 These are ignored by Git and stay on the local machine: `chroma_db/` (vectors),
@@ -346,12 +343,6 @@ To continue after a clarification, resend the original question with the chosen
 ```bash
 # Search stored chunks (retrieval only, no Qwen)
 uv run python -m ragsale.rag.retrieval "What training materials are available?" --top-k 3
-
-# Inspect the Chroma database
-uv run python DB_Data_viewer.py
-
-# Ingest the demo Hugging Face dataset (mtybilly/apex-r1-real-world-documents)
-uv run python main.py
 ```
 
 Evaluation scripts live in `evaluation/`; see [evaluation/README.md](evaluation/README.md).

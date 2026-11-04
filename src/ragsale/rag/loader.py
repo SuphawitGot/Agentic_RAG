@@ -1,26 +1,8 @@
-"""Load dataset rows or PDF pages (including local OCR) as documents."""
+"""Load PDF pages (including local OCR) as documents."""
 
-from datasets import load_dataset
 from langchain_core.documents import Document
 from .layout import extract_layout
 from .ocr import OCR_VERSION, check_ocr_available, merge_page_text, ocr_page
-
-
-def load_documents(dataset_id="mtybilly/apex-r1-real-world-documents", split="train"):
-    dataset = load_dataset(dataset_id, split=split)
-    # Each row is text, not necessarily a complete original document.
-    return [
-        Document(
-            page_content=row["text"],
-            metadata={
-                "source": f"https://huggingface.co/datasets/{dataset_id}",
-                "split": split,
-                "row_index": index,
-            },
-        )
-        for index, row in enumerate(dataset)
-        if row["text"] and row["text"].strip()
-    ]
 
 
 def load_pdf_documents(path, document_id, filename):

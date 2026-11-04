@@ -109,7 +109,7 @@ def main():
     except ValueError as error:
         parser.error(str(error))
     if not matches:
-        print("No stored chunks. Run python main.py to prepare documents first.")
+        print("No stored chunks. Upload PDFs in the web app first.")
         return
     for rank, match in enumerate(matches, start=1):
         print(f"\nMatch {rank} | cosine distance: {match['distance']:.4f}")
