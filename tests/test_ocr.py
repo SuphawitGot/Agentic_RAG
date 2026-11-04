@@ -5,8 +5,8 @@ from types import SimpleNamespace
 from unittest.mock import patch
 from urllib import error
 
-from ragsale.rag import loader, ocr
-from ragsale.rag.chunking import split_documents
+from agentic_rag.rag import loader, ocr
+from agentic_rag.rag.chunking import split_documents
 
 
 def ollama_response(body):

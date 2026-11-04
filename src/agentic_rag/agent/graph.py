@@ -16,7 +16,7 @@ repeated searches, the user's project scope, and the claim check that drops
 any statement whose quote is not in the cited excerpt.
 
 Run it from the command line to watch each step:
-    uv run python -m ragsale.agent "Which camera does Demo Line A use?"
+    uv run python -m agentic_rag.agent "Which camera does Demo Line A use?"
 """
 import json
 import logging

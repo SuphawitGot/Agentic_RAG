@@ -29,7 +29,7 @@ def run(pdf_dir, output_dir, reuse=False):
                 raise ValueError('PDF differs from the visually verified reference. Review the reference before testing.')
             extraction_path = output_dir / (case['id'] + '.json')
             if not reuse:
-                from ragsale.rag.loader import load_pdf_documents
+                from agentic_rag.rag.loader import load_pdf_documents
                 docs = load_pdf_documents(source, 'evaluation', name)
                 extraction = [{'text': d.page_content, 'metadata': d.metadata} for d in docs]
                 extraction_path.write_text(json.dumps(extraction, ensure_ascii=False, indent=2), encoding='utf-8')

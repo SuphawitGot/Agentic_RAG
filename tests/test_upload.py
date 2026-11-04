@@ -5,8 +5,8 @@ from unittest.mock import patch, AsyncMock
 
 import httpx
 
-from ragsale.api.main import app
-from ragsale.api import documents
+from agentic_rag.api.main import app
+from agentic_rag.api import documents
 
 
 class UploadTests(unittest.IsolatedAsyncioTestCase):

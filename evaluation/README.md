@@ -84,7 +84,7 @@ checking the original PDF.
 From the project root, generate a fresh extraction preview:
 
 ```bash
-uv run python -m ragsale.rag.ocr "/home/pui117/Desktop/Test raw data/Vision test report/copper pipe.pdf" \
+uv run python -m agentic_rag.rag.ocr "/home/pui117/Desktop/Test raw data/Vision test report/copper pipe.pdf" \
   --output output/extraction/copper-pipe.json
 ```
 

@@ -2,14 +2,14 @@ import io
 import json
 import unittest
 from unittest.mock import patch
-from ragsale.rag.answering import answer_question, generate_answer, GenerationError
+from agentic_rag.rag.answering import answer_question, generate_answer, GenerationError
 
 MATCHES=[{'id':'one','text':'ABC bought 20 cameras.','metadata':{'filename':'sales.pdf','page':1},'distance':0.1}]
 
 
 class AnswerTests(unittest.TestCase):
     def test_standalone_greetings_skip_retrieval_and_qwen(self):
-        with patch('ragsale.rag.answering.retrieve') as search, patch('urllib.request.urlopen') as model:
+        with patch('agentic_rag.rag.answering.retrieve') as search, patch('urllib.request.urlopen') as model:
             for question in ['hello', ' HELLO! ', 'Hi there.', 'good morning']:
                 result = answer_question(question)
                 self.assertIn('Hello!', result['answer'])
@@ -18,7 +18,7 @@ class AnswerTests(unittest.TestCase):
             model.assert_not_called()
 
     def test_greeting_with_question_still_uses_retrieval(self):
-        with patch('ragsale.rag.answering.retrieve', return_value=MATCHES) as search, patch('ragsale.rag.answering.generate_answer', return_value={'answer': 'test'}) as model:
+        with patch('agentic_rag.rag.answering.retrieve', return_value=MATCHES) as search, patch('agentic_rag.rag.answering.generate_answer', return_value={'answer': 'test'}) as model:
             question = 'Hello, how many cameras did ABC buy?'
             answer_question(question)
             search.assert_called_once_with(question, 3)

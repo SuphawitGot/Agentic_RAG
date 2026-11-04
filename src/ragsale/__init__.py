@@ -1,1 +1,0 @@
-"""RagSale backend package."""

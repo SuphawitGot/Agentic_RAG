@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch
 
-from ragsale.rag.project_names import named_projects
-from ragsale.rag.project_chat import project_chat
+from agentic_rag.rag.project_names import named_projects
+from agentic_rag.rag.project_chat import project_chat
 
 
 def project(identity, name):
@@ -23,9 +23,9 @@ class ProjectNameTests(unittest.TestCase):
     def test_shortened_washer_name_routes_directly(self):
         question = 'Summary washer inspection'
         self.assertEqual(named_projects(question, [COPPER, WASHER]), [WASHER])
-        with patch('ragsale.rag.project_chat.list_projects', return_value=[COPPER, WASHER]), patch(
-            'ragsale.rag.project_chat.answer_in_projects', return_value={'type': 'answer'}
-        ) as answer, patch('ragsale.rag.project_chat.assess_projects') as assess:
+        with patch('agentic_rag.rag.project_chat.list_projects', return_value=[COPPER, WASHER]), patch(
+            'agentic_rag.rag.project_chat.answer_in_projects', return_value={'type': 'answer'}
+        ) as answer, patch('agentic_rag.rag.project_chat.assess_projects') as assess:
             self.assertEqual(project_chat(question)['type'], 'answer')
             answer.assert_called_once_with(question, 3, [WASHER])
             assess.assert_not_called()
@@ -34,7 +34,7 @@ class ProjectNameTests(unittest.TestCase):
         other = project('other', 'ABC Washer Inspection')
         self.assertEqual(named_projects('Summary washer inspection', [WASHER, other]), [WASHER, other])
         self.assertEqual(named_projects('Summary IAI Washer Inspection', [WASHER, other]), [WASHER])
-        with patch('ragsale.rag.project_chat.list_projects', return_value=[COPPER, WASHER, other]):
+        with patch('agentic_rag.rag.project_chat.list_projects', return_value=[COPPER, WASHER, other]):
             result = project_chat('Summary washer inspection')
             self.assertEqual(result['type'], 'clarification')
             self.assertEqual([p['project_id'] for p in result['project_options']], ['washer', 'other'])
@@ -70,10 +70,10 @@ class ProjectNameTests(unittest.TestCase):
     def test_named_route_bypasses_scope_model_even_with_200_projects(self):
         projects = [COPPER] + [project(str(i), f'Unrelated project {i}') for i in range(199)]
         question = 'Can you summarize Scope of Work of copper pipe test ?'
-        with patch('ragsale.rag.project_chat.list_projects', return_value=projects), patch(
-            'ragsale.rag.project_chat.answer_in_projects', return_value={'type': 'answer', 'answer': 'Summary'}
-        ) as answer, patch('ragsale.rag.project_chat.assess_projects') as assess, patch(
-            'ragsale.rag.project_chat.retrieve_projects'
+        with patch('agentic_rag.rag.project_chat.list_projects', return_value=projects), patch(
+            'agentic_rag.rag.project_chat.answer_in_projects', return_value={'type': 'answer', 'answer': 'Summary'}
+        ) as answer, patch('agentic_rag.rag.project_chat.assess_projects') as assess, patch(
+            'agentic_rag.rag.project_chat.retrieve_projects'
         ) as candidates:
             self.assertEqual(project_chat(question)['type'], 'answer')
             answer.assert_called_once_with(question, 3, [COPPER])
@@ -82,8 +82,8 @@ class ProjectNameTests(unittest.TestCase):
 
     def test_duplicate_name_asks_only_matching_projects(self):
         duplicate = project('copper2', 'copper pipe')
-        with patch('ragsale.rag.project_chat.list_projects', return_value=[COPPER, WASHER, duplicate]), patch(
-            'ragsale.rag.project_chat.answer_in_projects'
+        with patch('agentic_rag.rag.project_chat.list_projects', return_value=[COPPER, WASHER, duplicate]), patch(
+            'agentic_rag.rag.project_chat.answer_in_projects'
         ) as answer:
             result = project_chat('Summarize copper pipe')
             self.assertEqual(result['type'], 'clarification')

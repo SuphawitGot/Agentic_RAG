@@ -1,6 +1,6 @@
 """Watch the agent work, step by step:
 
-    uv run python -m ragsale.agent "Which camera does Demo Line A use?"
+    uv run python -m agentic_rag.agent "Which camera does Demo Line A use?"
 """
 import argparse
 import json

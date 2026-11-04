@@ -1,6 +1,6 @@
 import unittest
 from types import SimpleNamespace
-from ragsale.rag.layout import clean_cell, extract_layout, positioned_lines, group_caption_columns
+from agentic_rag.rag.layout import clean_cell, extract_layout, positioned_lines, group_caption_columns
 
 
 def word(text, x, right, top=10, color=(0,0,0), size=12):

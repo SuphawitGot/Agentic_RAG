@@ -33,4 +33,4 @@ user if they haven't already approved pushing.
 
 - Install: `uv sync`
 - Tests: `uv run python -m unittest discover -s tests`
-- Agent: `uv run python -m ragsale.agent "..."`
+- Agent: `uv run python -m agentic_rag.agent "..."`

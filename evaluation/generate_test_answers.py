@@ -13,7 +13,7 @@ import time
 import chromadb
 
 from evaluation.compare_embeddings import CANDIDATE, SOURCE, fingerprint, read_records, separate_paths
-from ragsale.rag.answering import GenerationError, SYSTEM_PROMPT, generate_answer
+from agentic_rag.rag.answering import GenerationError, SYSTEM_PROMPT, generate_answer
 
 
 def prepare_matches(row, records, top_k):

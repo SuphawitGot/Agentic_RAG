@@ -9,18 +9,24 @@ the cloud, not only on one PC.
 Work happens on two PCs. Pull before starting and push after each update to
 this file, so the other PC sees where things stand.
 
-- **Phase:** 0 – Clean up the base (done, apart from the optional rename)
+- **Phase:** 1 – Embedding model and config (not started)
 - **In progress:** nothing yet
-- **Next step:** decide on the optional `ragsale` rename, then start
-  Phase 1 (choose the embedding model)
-- **Blockers / notes:** `uv sync` done on the pui117 Linux PC; the other PC
-  needs `uv sync` after pulling (packages were removed).
+- **Next step:** compare F2LLM (local CPU) with a hosted embedding API on
+  the English and Thai smoke cases
+- **Blockers / notes:** the other PC needs `uv sync` after pulling (packages
+  were removed and the package was renamed).
 
 ## Progress log
 
 Newest first. One entry per piece of work: date, PC, what changed, what is
 left.
 
+- **2026-11-04 (PC: pui117 Linux)** – Renamed the Python package `ragsale` →
+  `agentic_rag` (project name `agentic-rag`); commands are now
+  `python -m agentic_rag.agent` and `uvicorn agentic_rag.api.main:app`. Kept
+  the `'ragsale:'` prefix in project IDs so stored projects keep their IDs;
+  the frontend still shows "RagSale". 100 tests pass; agent run checked.
+  Phase 0 done.
 - **2026-11-04 (PC: pui117 Linux)** – First real agent run (qwen3:8b, a
   2-page text-only sample PDF). Found and fixed a bug: `submit_answer` sent
   `Claim` as a `$ref`, which qwen3:8b cannot follow, so every answer failed
@@ -51,7 +57,7 @@ Already working (inherited from RagSale):
 
 - PDF loading with OCR, chunking, F2LLM embeddings on CPU, local Chroma,
   hybrid dense + keyword search, and cited answers.
-- A LangGraph agent over uploaded PDFs (`src/ragsale/agent/`), with Python
+- A LangGraph agent over uploaded PDFs (`src/agentic_rag/agent/`), with Python
   limits (4 searches, 7 model calls, 180 seconds) and `verify_claims()`, which
   drops any claim whose quote is not in its cited excerpt.
 - FastAPI backend, React frontend, unit tests with a scripted fake model.
@@ -81,7 +87,7 @@ Answer with citations     Ingest new sources ──┘
 
 The ingest and search steps reuse the existing pipeline:
 `split_documents` → `embed_chunks` → `save_chunks`, then `retrieve`.
-Answers are checked by `verify_claims()` in `src/ragsale/agent/graph.py`.
+Answers are checked by `verify_claims()` in `src/agentic_rag/agent/graph.py`.
 
 ## Phases
 
@@ -102,11 +108,12 @@ Tick the boxes as steps are done.
       skipped (needs private reference files in `evaluation/`).
 - [x] Run the LangGraph agent once with real Ollama and a real PDF. Needed a
       fix: nested tool schemas are now inlined for qwen3:8b.
-- [ ] Optional: rename the `ragsale` package now, while the code is small.
+- [x] Optional: rename the `ragsale` package now, while the code is small.
+      Now `agentic_rag`.
 - [x] `__pycache__` files are not tracked; `ans_error/` is ignored.
 - [x] Remove unused files, the old dataset ingest and unused packages.
 
-Done when: the tests pass and `uv run python -m ragsale.agent "..."` answers
+Done when: the tests pass and `uv run python -m agentic_rag.agent "..."` answers
 with a citation.
 
 ### Phase 1 – Embedding model and config

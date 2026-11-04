@@ -1,4 +1,4 @@
-"""Search saved chunks: python -m ragsale.rag.retrieval 'Your question'"""
+"""Search saved chunks: python -m agentic_rag.rag.retrieval 'Your question'"""
 
 import argparse
 import numpy as np

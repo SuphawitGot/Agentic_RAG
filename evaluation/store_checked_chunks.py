@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 import numpy as np
 
-from ragsale.rag.vector_store import get_collection, save_chunks
+from agentic_rag.rag.vector_store import get_collection, save_chunks
 
 
 def record_id(text, metadata):
@@ -36,7 +36,7 @@ def verify(expected, actual):
 def main():
     from evaluation.evaluate_chunking import evaluate_chunks, read_json
     from langchain_core.documents import Document
-    from ragsale.rag.embedding import embed_chunks
+    from agentic_rag.rag.embedding import embed_chunks
     refs=Path('evaluation/references/three-documents')
     manifest=read_json(refs/'manifest.json')
     contexts=read_json(Path('evaluation/references/chunk_contexts.json'))['cases']

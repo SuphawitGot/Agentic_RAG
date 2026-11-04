@@ -3,13 +3,13 @@ from unittest.mock import AsyncMock, patch
 
 import httpx
 
-from ragsale.api.main import app
-from ragsale.rag.vector_store import list_documents
+from agentic_rag.api.main import app
+from agentic_rag.rag.vector_store import list_documents
 
 
 class DocumentListTests(unittest.TestCase):
     def test_groups_by_id_and_skips_legacy_metadata(self):
-        with patch('ragsale.rag.vector_store.get_collection') as get_collection:
+        with patch('agentic_rag.rag.vector_store.get_collection') as get_collection:
             collection = get_collection.return_value
             collection.get.return_value = {'metadatas': [
                 {'document_id': 'b', 'filename': 'washer.pdf', 'page': 1},
@@ -27,7 +27,7 @@ class DocumentListTests(unittest.TestCase):
             collection.get.assert_called_once_with(include=['metadatas'])
 
     def test_empty_and_conflicting_metadata(self):
-        with patch('ragsale.rag.vector_store.get_collection') as get_collection:
+        with patch('agentic_rag.rag.vector_store.get_collection') as get_collection:
             collection = get_collection.return_value
             collection.get.return_value = {'metadatas': []}
             self.assertEqual(list_documents(), [])
@@ -42,7 +42,7 @@ class DocumentListTests(unittest.TestCase):
 class DocumentListAPITests(unittest.IsolatedAsyncioTestCase):
     async def test_endpoint_and_database_failure(self):
         documents = [{'document_id': 'a', 'filename': 'washer.pdf'}]
-        with patch('ragsale.api.documents.run_in_threadpool',
+        with patch('agentic_rag.api.documents.run_in_threadpool',
                    new=AsyncMock(return_value=documents)) as worker:
             async with httpx.AsyncClient(
                 transport=httpx.ASGITransport(app=app), base_url='http://test'
@@ -53,7 +53,7 @@ class DocumentListAPITests(unittest.IsolatedAsyncioTestCase):
                 worker.return_value = []
                 self.assertEqual((await client.get('/api/documents')).json(), [])
                 worker.side_effect = RuntimeError('private database path')
-                with self.assertLogs('ragsale.api.documents', level='ERROR'):
+                with self.assertLogs('agentic_rag.api.documents', level='ERROR'):
                     response = await client.get('/api/documents')
                 self.assertEqual(response.status_code, 503)
                 self.assertNotIn('private database path', response.text)

@@ -5,8 +5,8 @@ from unittest.mock import patch
 import chromadb
 import numpy as np
 
-from ragsale.rag.keyword_search import keyword_rank
-from ragsale.rag.retrieval import retrieve
+from agentic_rag.rag.keyword_search import keyword_rank
+from agentic_rag.rag.retrieval import retrieve
 
 
 class KeywordSearchTests(unittest.TestCase):
@@ -34,7 +34,7 @@ class KeywordSearchTests(unittest.TestCase):
             c.upsert(ids=ids, documents=['unrelated cover'] * 13 + ['Software deep learning studio', 'software software'],
                      metadatas=[{'document_id': 'selected'}] * 14 + [{'document_id': 'other'}],
                      embeddings=[[1., 0.]] * 13 + [[0., 1.], [1., 0.]])
-            with patch('ragsale.rag.retrieval.get_collection', return_value=c):
+            with patch('agentic_rag.rag.retrieval.get_collection', return_value=c):
                 matches = retrieve('software', 3, ['selected'], query_vector=np.array([1., 0.]))
             self.assertIn('software', [m['id'] for m in matches])
             self.assertTrue(all(m['metadata']['document_id'] == 'selected' for m in matches))
@@ -47,7 +47,7 @@ class KeywordSearchTests(unittest.TestCase):
                      documents=['technology ' + 'general context ' * 100] * 13 + ['Software studio', 'Technology comparison'],
                      metadatas=[{'document_id': 'selected'}] * 15,
                      embeddings=[[1., 0.]] * 13 + [[0., 1.], [0., 1.]])
-            with patch('ragsale.rag.retrieval.get_collection', return_value=c):
+            with patch('agentic_rag.rag.retrieval.get_collection', return_value=c):
                 matches = retrieve('software technology', 3, ['selected'], query_vector=np.array([1., 0.]))
             self.assertIn('software', [m['id'] for m in matches])
             self.assertIn('technology', [m['id'] for m in matches])

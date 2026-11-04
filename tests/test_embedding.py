@@ -2,15 +2,15 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 import numpy as np
-from ragsale.rag.embedding import embed_chunks, MODEL_NAME
-from ragsale.rag.retrieval import retrieve, retrieve_projects
+from agentic_rag.rag.embedding import embed_chunks, MODEL_NAME
+from agentic_rag.rag.retrieval import retrieve, retrieve_projects
 
 
 class EmbeddingTests(unittest.TestCase):
     def test_documents_use_document_encoder(self):
         model = Mock()
         model.encode_document.return_value = np.zeros((1, 1024))
-        with patch('ragsale.rag.embedding.load_embedding_model', return_value=model):
+        with patch('agentic_rag.rag.embedding.load_embedding_model', return_value=model):
             embed_chunks([SimpleNamespace(page_content='Camera')])
         model.encode_document.assert_called_once_with(['Camera'], normalize_embeddings=True,
             convert_to_numpy=True, show_progress_bar=True, batch_size=2)
@@ -23,7 +23,7 @@ class EmbeddingTests(unittest.TestCase):
         collection.count.return_value = 1
         collection.query.return_value = {'ids': [['one']], 'documents': [['Camera']],
             'metadatas': [[{'page': 9}]], 'distances': [[.2]]}
-        with patch('ragsale.rag.retrieval.load_embedding_model', return_value=model), patch('ragsale.rag.retrieval.get_collection', return_value=collection):
+        with patch('agentic_rag.rag.retrieval.load_embedding_model', return_value=model), patch('agentic_rag.rag.retrieval.get_collection', return_value=collection):
             retrieve('Equipment?')
         model.encode_query.assert_called_once_with('Equipment?', normalize_embeddings=True)
         model.encode.assert_not_called()
@@ -32,7 +32,7 @@ class EmbeddingTests(unittest.TestCase):
         model = Mock()
         model.encode_query.return_value = np.ones(1024)
         projects = [{'project_id': 'p', 'project_name': 'P', 'documents': [{'document_id': 'd'}]}]
-        with patch('ragsale.rag.retrieval.load_embedding_model', return_value=model), patch('ragsale.rag.retrieval.retrieve', return_value=[]) as search:
+        with patch('agentic_rag.rag.retrieval.load_embedding_model', return_value=model), patch('agentic_rag.rag.retrieval.retrieve', return_value=[]) as search:
             retrieve_projects('Equipment?', projects)
         model.encode_query.assert_called_once_with('Equipment?', normalize_embeddings=True)
         self.assertIs(search.call_args.kwargs['query_vector'], model.encode_query.return_value)

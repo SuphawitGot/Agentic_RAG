@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 from langchain_core.messages import AIMessage, ToolMessage
 
-from ragsale.agent import graph
-from ragsale.agent.evidence_tools import FINISH_TOOLS, SEARCH_TOOLS, Claim, as_tool
+from agentic_rag.agent import graph
+from agentic_rag.agent.evidence_tools import FINISH_TOOLS, SEARCH_TOOLS, Claim, as_tool
 
 PROJECTS = [
     {'project_id': 'p1', 'project_name': 'Demo Line A',
@@ -49,7 +49,7 @@ class ScriptedModel:
 
 def run(model, **kwargs):
     with patch.object(graph, '_catalog', return_value=PROJECTS), \
-            patch('ragsale.agent.evidence_tools._retrieve_projects', side_effect=fake_retrieve):
+            patch('agentic_rag.agent.evidence_tools._retrieve_projects', side_effect=fake_retrieve):
         return graph.graph_chat(kwargs.pop('question', 'Which camera is used?'), model=model, **kwargs)
 
 

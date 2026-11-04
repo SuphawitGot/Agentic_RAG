@@ -34,6 +34,7 @@ def assign_project(document_id, project_name):
     name = ' '.join(unicodedata.normalize('NFKC', project_name).split())
     if not name or len(name) > 120:
         raise ValueError('Project name must contain 1–120 characters.')
+    # Keep the 'ragsale:' prefix: changing it would change every stored project ID.
     project_id = 'project:' + uuid5(NAMESPACE_URL, 'ragsale:' + name.casefold()).hex
     PROJECT_DB.parent.mkdir(parents=True, exist_ok=True)
     with closing(sqlite3.connect(PROJECT_DB)) as db, db:

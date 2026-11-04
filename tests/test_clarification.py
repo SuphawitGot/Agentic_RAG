@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, patch
 
 import httpx
 
-from ragsale.api.main import app
-from ragsale.rag.clarification import decide_scope
+from agentic_rag.api.main import app
+from agentic_rag.rag.clarification import decide_scope
 
 
 DOCS = [
@@ -52,8 +52,8 @@ class ScopeTests(unittest.TestCase):
 
 class ScopeAPITests(unittest.IsolatedAsyncioTestCase):
     async def test_contract_and_failures(self):
-        with patch('ragsale.api.scope.list_documents', return_value=DOCS), patch(
-            'ragsale.api.scope.run_in_threadpool', new=AsyncMock(return_value=DOCS)
+        with patch('agentic_rag.api.scope.list_documents', return_value=DOCS), patch(
+            'agentic_rag.api.scope.run_in_threadpool', new=AsyncMock(return_value=DOCS)
         ) as worker:
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
                 r = await client.post('/api/chat/scope', json={'question': 'Result?'})
@@ -65,7 +65,7 @@ class ScopeAPITests(unittest.IsolatedAsyncioTestCase):
                              {'question': 'Result?', 'selected_document_ids': ['imco'], 'search_all': True}]:
                     self.assertEqual((await client.post('/api/chat/scope', json=body)).status_code, 422)
                 worker.side_effect = RuntimeError('private details')
-                with self.assertLogs('ragsale.api.scope', level='ERROR'):
+                with self.assertLogs('agentic_rag.api.scope', level='ERROR'):
                     r = await client.post('/api/chat/scope', json={'question': 'Result?'})
                 self.assertEqual(r.status_code, 503)
                 self.assertNotIn('private details', r.text)

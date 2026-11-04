@@ -1,6 +1,6 @@
 import unittest
 from evaluation.generate_test_answers import prepare_matches, run_case
-from ragsale.rag.answering import GenerationError
+from agentic_rag.rag.answering import GenerationError
 
 
 class TestAnswerExperiment(unittest.TestCase):

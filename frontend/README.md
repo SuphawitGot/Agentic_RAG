@@ -30,7 +30,7 @@ pnpm dev
 In another terminal, from the project root:
 
 ```bash
-uv run uvicorn ragsale.api.main:app --reload
+uv run uvicorn agentic_rag.api.main:app --reload
 ```
 
 Visit http://127.0.0.1:5173. Vite forwards `/api` requests to

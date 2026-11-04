@@ -1,14 +1,14 @@
 import unittest
 from unittest.mock import AsyncMock, patch
 import httpx
-from ragsale.api.main import app
-from ragsale.rag.answering import GenerationError
+from agentic_rag.api.main import app
+from agentic_rag.rag.answering import GenerationError
 
 
 class ChatTests(unittest.IsolatedAsyncioTestCase):
     async def test_response_and_failure(self):
         result={'answer':'Not enough information.','sources':[],'insufficient_evidence':True}
-        with patch('ragsale.api.chat.run_in_threadpool', new=AsyncMock(return_value=result)) as worker:
+        with patch('agentic_rag.api.chat.run_in_threadpool', new=AsyncMock(return_value=result)) as worker:
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://test') as client:
                 r=await client.post('/api/chat',json={'question':'What happened?'})
                 self.assertEqual(r.status_code,200)

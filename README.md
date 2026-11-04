@@ -12,11 +12,11 @@ steps that the code decides in advance.
 The goal here is to turn those building blocks into tools that an LLM agent
 can choose, combine and repeat until it has enough evidence to answer.
 
-> **Status:** early. The first agent is in [`src/ragsale/agent/`](src/ragsale/agent/):
+> **Status:** early. The first agent is in [`src/agentic_rag/agent/`](src/agentic_rag/agent/):
 > RagSale's hand-written agent loop rebuilt with LangGraph, to learn the
 > framework. It searches the uploaded PDFs only; web search is not built yet.
-> The default chat still uses the RagSale pipeline (the Python package is still
-> named `ragsale`). Everything from
+> The default chat still uses the RagSale pipeline (the Python package is
+> `agentic_rag`). Everything from
 > [Current baseline](#current-baseline-inherited-from-ragsale) down documents
 > that pipeline.
 
@@ -35,7 +35,7 @@ can choose, combine and repeat until it has enough evidence to answer.
 ## LangGraph agent
 
 RagSale's own agent is a hand-written Python loop: ask the model for one JSON
-decision, run the tool it names, repeat. [`agent/graph.py`](src/ragsale/agent/graph.py)
+decision, run the tool it names, repeat. [`agent/graph.py`](src/agentic_rag/agent/graph.py)
 builds the same loop as a LangGraph graph, so the two can be compared side by side.
 
 ```text
@@ -68,7 +68,7 @@ question goes straight into the loop.
 Watch it work, step by step:
 
 ```bash
-uv run python -m ragsale.agent "Which camera does Demo Line A use?"
+uv run python -m agentic_rag.agent "Which camera does Demo Line A use?"
 ```
 
 ```text
@@ -151,7 +151,7 @@ Run from the project root unless noted.
 3. Start the backend:
 
    ```bash
-   uv run uvicorn ragsale.api.main:app --reload
+   uv run uvicorn agentic_rag.api.main:app --reload
    ```
 
 4. In a second terminal, start the frontend:
@@ -182,14 +182,14 @@ PowerShell:
 
 ```powershell
 $env:QWEN_MODEL = "qwen3:8b"
-uv run uvicorn ragsale.api.main:app --reload
+uv run uvicorn agentic_rag.api.main:app --reload
 ```
 
 bash:
 
 ```bash
 export QWEN_MODEL=qwen3:8b
-uv run uvicorn ragsale.api.main:app --reload
+uv run uvicorn agentic_rag.api.main:app --reload
 ```
 
 Any model you configure must already be pulled in Ollama.
@@ -198,7 +198,7 @@ Any model you configure must already be pulled in Ollama.
 
 ```text
 frontend/                     # React + Vite app; see frontend/README.md
-src/ragsale/
+src/agentic_rag/
   api/
     main.py                   # FastAPI app; all routes under /api
     health.py                 # GET  /api/health
@@ -287,7 +287,7 @@ each figure, stored as a `[Figure] ...` line. Page numbers are dropped.
 Preview a PDF's extraction without embedding it or changing Chroma:
 
 ```bash
-uv run python -m ragsale.rag.ocr "path/to/report.pdf" --output output/extraction/report.json
+uv run python -m agentic_rag.rag.ocr "path/to/report.pdf" --output output/extraction/report.json
 ```
 
 ## Asking questions
@@ -342,7 +342,7 @@ To continue after a clarification, resend the original question with the chosen
 
 ```bash
 # Search stored chunks (retrieval only, no Qwen)
-uv run python -m ragsale.rag.retrieval "What training materials are available?" --top-k 3
+uv run python -m agentic_rag.rag.retrieval "What training materials are available?" --top-k 3
 ```
 
 Evaluation scripts live in `evaluation/`; see [evaluation/README.md](evaluation/README.md).

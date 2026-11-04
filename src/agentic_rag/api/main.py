@@ -1,11 +1,11 @@
-"""Run with: uv run uvicorn ragsale.api.main:app --reload."""
+"""Run with: uv run uvicorn agentic_rag.api.main:app --reload."""
 
 from fastapi import FastAPI
 from .health import router
 from .search import router as search_router
 from .documents import router as documents_router
 
-app = FastAPI(title="RagSale API", version="0.1.0")
+app = FastAPI(title="Agentic RAG API", version="0.1.0")
 app.include_router(router, prefix="/api")
 
 app.include_router(documents_router, prefix="/api")

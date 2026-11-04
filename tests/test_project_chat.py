@@ -9,11 +9,11 @@ import chromadb
 import httpx
 import numpy as np
 
-from ragsale.api.main import app
-from ragsale.rag.projects import list_projects, assign_project
-from ragsale.rag.project_chat import project_chat, assess_projects, ProjectDecision
-from ragsale.rag.answering import GenerationError
-from ragsale.rag.retrieval import retrieve, retrieve_projects
+from agentic_rag.api.main import app
+from agentic_rag.rag.projects import list_projects, assign_project
+from agentic_rag.rag.project_chat import project_chat, assess_projects, ProjectDecision
+from agentic_rag.rag.answering import GenerationError
+from agentic_rag.rag.retrieval import retrieve, retrieve_projects
 
 
 PROJECTS = [
@@ -28,7 +28,7 @@ CANDIDATES = [{**p, 'matches': [{'id': p['project_id'], 'text': text,
 class ProjectRegistryTests(unittest.TestCase):
     def test_default_mapping_grouping_and_persistence(self):
         docs = [p['documents'][0] for p in PROJECTS]
-        with tempfile.TemporaryDirectory() as tmp, patch('ragsale.rag.projects.PROJECT_DB', Path(tmp) / 'projects.sqlite3'), patch('ragsale.rag.projects.list_documents', return_value=docs):
+        with tempfile.TemporaryDirectory() as tmp, patch('agentic_rag.rag.projects.PROJECT_DB', Path(tmp) / 'projects.sqlite3'), patch('agentic_rag.rag.projects.list_documents', return_value=docs):
             self.assertEqual(len(list_projects()), 2)
             one = assign_project('car-pdf', 'Shared project')
             two = assign_project('person-pdf', ' shared PROJECT ')
@@ -46,7 +46,7 @@ class RetrievalScopeTests(unittest.TestCase):
             collection.upsert(ids=['c1', 'c2', 'c3', 'p1'], documents=['car1', 'car2', 'car3', 'person1'],
                 metadatas=[{'document_id': x} for x in ['car-pdf', 'car-pdf', 'car-pdf', 'person-pdf']],
                 embeddings=[[1., 0.], [1., .01], [1., .02], [0., 1.]])
-            with patch('ragsale.rag.retrieval.get_collection', return_value=collection), patch('ragsale.rag.retrieval.load_embedding_model') as model:
+            with patch('agentic_rag.rag.retrieval.get_collection', return_value=collection), patch('agentic_rag.rag.retrieval.load_embedding_model') as model:
                 model.return_value.encode_query.return_value = np.array([1., 0.])
                 self.assertEqual([x['id'] for x in retrieve('Camera accuracy?', 3, ['person-pdf'])], ['p1'])
                 self.assertEqual(retrieve('Camera accuracy?', 3, []), [])
@@ -59,10 +59,10 @@ class RetrievalScopeTests(unittest.TestCase):
 
 class ProjectChatTests(unittest.TestCase):
     def setUp(self):
-        self.registry = patch('ragsale.rag.project_chat.list_projects', return_value=PROJECTS).start()
-        self.search = patch('ragsale.rag.project_chat.retrieve_projects', return_value=CANDIDATES).start()
-        self.assess = patch('ragsale.rag.project_chat.assess_projects').start()
-        self.generate = patch('ragsale.rag.project_chat.generate_answer', return_value={
+        self.registry = patch('agentic_rag.rag.project_chat.list_projects', return_value=PROJECTS).start()
+        self.search = patch('agentic_rag.rag.project_chat.retrieve_projects', return_value=CANDIDATES).start()
+        self.assess = patch('agentic_rag.rag.project_chat.assess_projects').start()
+        self.generate = patch('agentic_rag.rag.project_chat.generate_answer', return_value={
             'answer': '88% [1]', 'sources': [], 'insufficient_evidence': False}).start()
         self.addCleanup(patch.stopall)
 
@@ -141,11 +141,11 @@ class ScopeModelContractTests(unittest.TestCase):
 
 class ProjectChatAPITests(unittest.IsolatedAsyncioTestCase):
     async def test_clarification_and_followup(self):
-        with patch('ragsale.rag.project_chat.list_projects', return_value=PROJECTS), patch(
-            'ragsale.rag.project_chat.retrieve_projects', return_value=CANDIDATES
-        ), patch('ragsale.rag.project_chat.assess_projects', return_value=ProjectDecision(
+        with patch('agentic_rag.rag.project_chat.list_projects', return_value=PROJECTS), patch(
+            'agentic_rag.rag.project_chat.retrieve_projects', return_value=CANDIDATES
+        ), patch('agentic_rag.rag.project_chat.assess_projects', return_value=ProjectDecision(
             relevant_project_ids=['cars', 'people'], explicit_project_ids=[], comparison_requested=False, decision='clarify'
-        )), patch('ragsale.rag.project_chat.answer_in_projects', return_value={
+        )), patch('agentic_rag.rag.project_chat.answer_in_projects', return_value={
             'type': 'answer', 'answer': '88%', 'sources': [], 'insufficient_evidence': False
         }) as answer:
             async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
