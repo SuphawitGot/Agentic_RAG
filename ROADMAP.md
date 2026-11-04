@@ -9,10 +9,10 @@ the cloud, not only on one PC.
 Work happens on two PCs. Pull before starting and push after each update to
 this file, so the other PC sees where things stand.
 
-- **Phase:** 1 – Embedding model and config (not started)
-- **In progress:** nothing yet
-- **Next step:** compare F2LLM (local CPU) with a hosted embedding API on
-  the English and Thai smoke cases
+- **Phase:** 1 – Embedding model and config (in progress)
+- **In progress:** nothing yet. Embedding model decided: keep F2LLM for now.
+- **Next step:** move settings to environment variables and add
+  `.env.example`
 - **Blockers / notes:** the other PC needs `uv sync` after pulling (packages
   were removed and the package was renamed).
 
@@ -21,6 +21,14 @@ this file, so the other PC sees where things stand.
 Newest first. One entry per piece of work: date, PC, what changed, what is
 left.
 
+- **2026-11-04 (PC: pui117 Linux)** – Decided to keep F2LLM for now (best
+  quality, no re-embedding). Hosted APIs to be benchmarked in Phase 6, before
+  moving to the cloud. See Open decisions.
+- **2026-11-04 (PC: pui117 Linux)** – Started Phase 1. Added
+  `evaluation/benchmark_embeddings.py` and 16 made-up English/Thai passages
+  with 23 questions (no private data, same results on both PCs). Ran the 3
+  local models; results under Phase 1. No hosted API tested yet. No decision
+  made.
 - **2026-11-04 (PC: pui117 Linux)** – Renamed the Python package `ragsale` →
   `agentic_rag` (project name `agentic-rag`); commands are now
   `python -m agentic_rag.agent` and `uvicorn agentic_rag.api.main:app`. Kept
@@ -126,6 +134,24 @@ re-embedding everything.
       the backend will be hosted. Compare the current F2LLM (local CPU) with a
       hosted embedding API on the Thai and English smoke cases in
       `evaluation/cases/`.
+  - [x] Benchmark local models: `uv run python -m evaluation.benchmark_embeddings`
+        (2026-11-04, pui117 Linux, 4-core CPU, batch size 8):
+
+        | Model | hit@1 | MRR | Thai→English hit@1 | Chunks/s | Peak RAM |
+        |---|---|---|---|---|---|
+        | F2LLM-v2-0.6B (current) | 0.91 | 0.95 | 0.50 | 0.45 | 4.2 GB |
+        | multilingual-e5-base | 0.87 | 0.92 | 0.25 | 4.0 | 1.8 GB |
+        | multilingual-e5-small | 0.74 | 0.83 | 0.25 | 12.0 | 1.5 GB |
+
+        All three are perfect on English→English, Thai→Thai and mixed
+        questions; Thai questions about English text are the weak spot for
+        all of them. With 23 questions, one question is 0.04 of hit@1.
+        F2LLM is best but needs about 2 s per chunk on this CPU and too much
+        RAM for cheap hosting.
+  - [ ] Benchmark a hosted API (needs a key in `.env`: Gemini, OpenAI or Jina).
+        Moved to Phase 6.
+  - [x] Decide, and record the reason under Open decisions. Keep F2LLM for
+        now (2026-11-04).
 - [ ] Move settings to environment variables: Chroma collection name
       (now hard-coded in `vector_store.py`), embedding model, `AGENT_MODEL`,
       data paths. Add a `.env.example`.
@@ -199,8 +225,11 @@ Done when: you can see each step, click its sources, and ask follow-ups.
 - [ ] Move Chroma from `PersistentClient` to Chroma Cloud.
 - [ ] Move project assignments (`data/projects.sqlite3`) and uploads
       (`uploads/`) to hosted storage.
-- [ ] Hosted LLM through `AGENT_MODEL`; hosted embeddings if chosen in
-      Phase 1.
+- [ ] Hosted LLM through `AGENT_MODEL`.
+- [ ] Embeddings for the cloud: F2LLM needs about 4 GB of RAM. Benchmark a
+      hosted API (`evaluation.benchmark_embeddings`, key in `.env`) against
+      F2LLM's Phase 1 scores. If switching, re-embed everything into a new
+      collection.
 - [ ] Check hybrid search speed: scoped searches load every scoped chunk on
       each query, which is slow over the network.
 
@@ -232,7 +261,12 @@ Done when: it works from a phone, and only you can use it.
 
 ## Open decisions
 
-- **Embedding model:** decided in Phase 1. Must handle Thai.
+- **Embedding model:** keep F2LLM-v2-0.6B for now (decided 2026-11-04).
+  Why: best scores in the Phase 1 benchmark (hit@1 0.91, best on Thai
+  questions about English text) and no re-embedding needed. Costs: about
+  2 s per chunk on CPU (Phase 4 must ingest only abstracts or best chunks
+  during a question) and about 4 GB of RAM (rules out cheap hosting).
+  Revisit in Phase 6 with a hosted API benchmark.
 - **LLM provider:** Ollama for development; for the cloud, one hosted provider
   with a free tier and tool calling. `AGENT_MODEL` switches between them.
 - **Budget:** start on free tiers.

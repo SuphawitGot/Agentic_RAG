@@ -4,6 +4,23 @@
 > below depend on those old collections; recreate an appropriate isolated
 > benchmark before using them again. Do not mix models in the new live collection.
 
+# Bilingual embedding benchmark
+
+Compares embedding models on made-up English and Thai passages
+(`evaluation/cases/embedding_bilingual.json`), so it needs no private PDFs or
+Chroma collections and gives the same results on any PC:
+
+```bash
+uv run python -m evaluation.benchmark_embeddings
+uv run --env-file .env python -m evaluation.benchmark_embeddings --models openai:text-embedding-3-small
+```
+
+It reports hit@1 and MRR per query type (English→English, Thai→Thai, both
+cross-language directions, and Thai mixed with English words), CPU speed on
+1,000-character chunks, query time and peak memory. Each model runs in its own
+process. Hosted models (`openai:`, `gemini:`, `jina:`) read their API key from
+the environment. Reports go to `output/embedding-benchmark/`.
+
 # Isolated embedding comparison
 
 Run from the repository root:
