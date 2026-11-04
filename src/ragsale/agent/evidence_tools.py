@@ -81,11 +81,27 @@ FINISH_TOOLS = {'submit_answer': SubmitAnswer,
                 'report_insufficient': ReportInsufficient}
 
 
+def _inline(node, defs):
+    """Replace each {"$ref": "#/$defs/X"} with X itself."""
+    if isinstance(node, list):
+        return [_inline(item, defs) for item in node]
+    if not isinstance(node, dict):
+        return node
+    if '$ref' in node:
+        return _inline(defs[node['$ref'].split('/')[-1]], defs)
+    return {key: _inline(value, defs) for key, value in node.items() if key != '$defs'}
+
+
 def as_tool(name, schema):
-    """A tool definition the model can call, built from a Pydantic schema."""
+    """A tool definition the model can call, built from a Pydantic schema.
+
+    Nested models are inlined: small local models (qwen3:8b) cannot follow $ref
+    and fill the fields with the schema's own "title"/"description" instead.
+    """
+    parameters = schema.model_json_schema()
     return {'type': 'function', 'function': {
         'name': name, 'description': ' '.join(schema.__doc__.split()),
-        'parameters': schema.model_json_schema()}}
+        'parameters': _inline(parameters, parameters.get('$defs', {}))}}
 
 
 class ToolError(ValueError):

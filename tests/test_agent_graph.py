@@ -5,7 +5,7 @@ from unittest.mock import patch
 from langchain_core.messages import AIMessage, ToolMessage
 
 from ragsale.agent import graph
-from ragsale.agent.evidence_tools import Claim
+from ragsale.agent.evidence_tools import FINISH_TOOLS, SEARCH_TOOLS, Claim, as_tool
 
 PROJECTS = [
     {'project_id': 'p1', 'project_name': 'Demo Line A',
@@ -148,6 +148,18 @@ class VerifyClaimsTests(unittest.TestCase):
 
     def test_numbers_in_the_claim_must_be_in_the_quote(self):
         self.assertEqual(self.check('Diameter is 13 mm.', 'diameter is 12.7 mm')[0], [])
+
+
+class ToolSchemaTests(unittest.TestCase):
+    def test_nested_schemas_are_inlined(self):
+        # qwen3:8b cannot follow $ref: it filled each claim field with {"description", "title"}.
+        tools = [as_tool(name, schema) for name, schema in {**SEARCH_TOOLS, **FINISH_TOOLS}.items()]
+        text = json.dumps(tools)
+        self.assertNotIn('$ref', text)
+        self.assertNotIn('$defs', text)
+        claim = tools[len(SEARCH_TOOLS)]['function']['parameters']['properties']['claims']['items']
+        self.assertEqual(claim['required'], ['text', 'quote', 'citation'])
+        self.assertEqual(claim['properties']['citation']['type'], 'integer')
 
 
 if __name__ == '__main__':

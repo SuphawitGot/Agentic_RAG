@@ -9,9 +9,10 @@ the cloud, not only on one PC.
 Work happens on two PCs. Pull before starting and push after each update to
 this file, so the other PC sees where things stand.
 
-- **Phase:** 0 – Clean up the base (tests done)
+- **Phase:** 0 – Clean up the base (done, apart from the optional rename)
 - **In progress:** nothing yet
-- **Next step:** run the LangGraph agent once with real Ollama and a real PDF
+- **Next step:** decide on the optional `ragsale` rename, then start
+  Phase 1 (choose the embedding model)
 - **Blockers / notes:** `uv sync` done on the pui117 Linux PC; the other PC
   needs `uv sync` after pulling (packages were removed).
 
@@ -20,6 +21,13 @@ this file, so the other PC sees where things stand.
 Newest first. One entry per piece of work: date, PC, what changed, what is
 left.
 
+- **2026-11-04 (PC: pui117 Linux)** – First real agent run (qwen3:8b, a
+  2-page text-only sample PDF). Found and fixed a bug: `submit_answer` sent
+  `Claim` as a `$ref`, which qwen3:8b cannot follow, so every answer failed
+  validation until the budget ran out. `as_tool` now inlines nested schemas
+  (test added; 100 tests pass). After the fix, answers are cited from pages 1
+  and 2. Found a known issue for Phase 4: a made-up claim passed the checks
+  (see Phase 4).
 - **2026-11-04 (PC: pui117 Linux)** – Removed unused files: the scratch
   scripts `TestHuggingface.py` and `DB_Data_viewer.py`, and the old Hugging
   Face dataset ingest (`main.py`, `ragsale/ingest.py`, `load_documents()`,
@@ -92,7 +100,8 @@ Tick the boxes as steps are done.
       Done on the pui117 Linux PC.
 - [x] Run the full test suite and fix anything broken. 99 tests pass, 1
       skipped (needs private reference files in `evaluation/`).
-- [ ] Run the LangGraph agent once with real Ollama and a real PDF.
+- [x] Run the LangGraph agent once with real Ollama and a real PDF. Needed a
+      fix: nested tool schemas are now inlined for qwen3:8b.
 - [ ] Optional: rename the `ragsale` package now, while the code is small.
 - [x] `__pycache__` files are not tracked; `ans_error/` is ignored.
 - [x] Remove unused files, the old dataset ingest and unused packages.
@@ -159,6 +168,10 @@ offline.
       at most 3 rounds.
 - [ ] Fit ingestion in the time budget: during a question, ingest only the
       abstract or best chunks; ingest full text in the background.
+- [ ] Check that each claim follows from its quote, not only that the quote
+      exists. Seen 2026-11-04: asked "Which PLC brand controls the line?",
+      qwen3:8b answered "The PLC brand is Cognex" with a real quote about
+      Cognex VisionPro software, and `verify_claims()` accepted it.
 - [ ] Fetched text is untrusted: keep the prompt rule that excerpts are data,
       never instructions.
 
